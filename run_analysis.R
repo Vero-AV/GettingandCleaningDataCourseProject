@@ -1,4 +1,14 @@
 
+library(dplyr)
+
+#### Get data 
+
+fileurl = 'https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip'
+if (!file.exists('./UCI HAR Dataset.zip')){
+  download.file(fileurl,'./UCI HAR Dataset.zip', method="curl")
+  unzip("UCI HAR Dataset.zip", exdir = getwd())
+}
+
 #### Read data  ####
 
 features <- read.table("UCI HAR Dataset/features.txt", col.names = c("n","features"))
@@ -25,7 +35,7 @@ data <- data %>% select(subject, classLabels, contains("mean"), contains("std"))
 
 data$classLabels <- activities[data$classLabels, 2]
 
-#### Fourth step ####
+#### Modify column names to descriptive ####
 
 names(data)[2] = "Activity"
 names(data)<-gsub("subject", "Subject", names(data))
@@ -43,12 +53,12 @@ names(data)<-gsub("(-)?freq()", "Frequency", names(data), ignore.case = TRUE)
 names(data)<-gsub("BodyBody", "Body", names(data))
 names(data)<-gsub('\\.', "", names(data))
 
-#### Fifth step  ####
+#### Generate tidyData that consists of the average of each variable for each activity and each subject ####
 
 tidyData <- data %>%
   group_by(Subject, Activity) %>%
   summarise_all(list(mean = mean))
 
-#### Write output file  ####
+#### Write tidyData output file  ####
 write.table(tidyData, file = "tidyData.txt", row.names = FALSE)
 
